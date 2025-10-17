@@ -29,19 +29,6 @@ This project builds a retro-style asteroid shooter, focusing on game loops, coll
 
 ---
 
-## 🚀 Features / Implementation Plan
-
-1. **Step 1 – Setup:** brief description (e.g., initialize repo, install deps)  
-2. **Step 2 – Core Functionality:** what’s being built and how  
-3. **Step 3 – Comparison / Benchmarking:** if relevant  
-4. **Step 4 – Visualization / Output:** how results are displayed or tested  
-5. **Step 5 – Deployment / Packaging:** optional (web, CLI, hardware, etc.)
-
-> 📈 You can add diagrams or screenshots here  
-> `![screenshot](docs/screenshot.png)`  
-
----
-
 ## 🧪 Usage / Running the Project
 
 ### 🖥️ Setup
@@ -100,8 +87,7 @@ go get -u github.com/gen2brain/raylib-go/raylib@latest
 ### ▶️ Run
 
 ```bash
-# Example run command
-npm run dev        # or python main.py / go run main.go / cargo run
+go run main.go
 ```
 
 ---
@@ -111,6 +97,19 @@ npm run dev        # or python main.py / go run main.go / cargo run
 - Key metrics or outcomes  
 - Screenshots or performance graphs  
 - Lessons learned, trade-offs, or insights  
+
+---
+
+## 🚀 Features / Implementation Plan
+
+1. **Step 1 – Setup:** brief description (e.g., initialize repo, install deps)  
+2. **Step 2 – Core Functionality:** what’s being built and how  
+3. **Step 3 – Comparison / Benchmarking:** if relevant  
+4. **Step 4 – Visualization / Output:** how results are displayed or tested  
+5. **Step 5 – Deployment / Packaging:** optional (web, CLI, hardware, etc.)
+
+> 📈 You can add diagrams or screenshots here  
+> `![screenshot](docs/screenshot.png)`  
 
 ---
 
@@ -132,12 +131,14 @@ npm run dev        # or python main.py / go run main.go / cargo run
 
 ## 🧑‍💻 Author
 
-**Your Name**  
-GitHub: [@yourusername](https://github.com/yourusername)  
-Email: your.email@example.com  
+**Olly Bayley**  
+GitHub: [@ombayley](https://github.com/ombayley)  
 
 ---
 
 ## 🪪 License
 
-This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
+This project is licensed under the **GNU General Public License (GPL)** — See the [LICENSE](LICENSE) file for details.
+The GPL License is a copyleft license, that requires any derivative work to also be released under the GPL License.
+This means any derivative software that uses this code remains open-source and freely available to the public.
+
