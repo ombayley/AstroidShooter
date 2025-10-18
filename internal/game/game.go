@@ -1,14 +1,18 @@
 package game
 
 import (
+	"asteroids/internal/astroid"
 	"asteroids/internal/config"
 	"asteroids/internal/player"
+
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 type Game struct {
-	texBackground rl.Texture2D
-	Player        player.Player
+	texBackground    rl.Texture2D
+	Player           player.Player
+	initialAsteroids int
+	astroids         []astroid.Astroid
 }
 
 func New() *Game {
@@ -18,14 +22,19 @@ func New() *Game {
 
 	// Build game
 	g := &Game{
-		texBackground: rl.LoadTexture("resources/space_background.png"),
-		Player:        player.New(config.ScreenWidth/2, config.ScreenHeight/2),
+		texBackground:    rl.LoadTexture("resources/space_background.png"),
+		Player:           player.New(config.ScreenWidth/2, config.ScreenHeight/2),
+		initialAsteroids: 5,
+		astroids:         astroid.CreateMultipleAstroids(5),
 	}
 	return g
 }
 
 func (g *Game) Update() {
 	g.Player.Update()
+	for i := range g.astroids {
+		g.astroids[i].Update()
+	}
 }
 
 func (g *Game) Draw() {
@@ -39,6 +48,11 @@ func (g *Game) Draw() {
 
 	// Draw player
 	g.Player.Draw()
+
+	// Draw astroids
+	for i := range g.astroids {
+		g.astroids[i].Draw()
+	}
 
 	// Draw score
 	rl.DrawText("Score: 0", 10, 10, 20, rl.Gray)
