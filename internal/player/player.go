@@ -3,11 +3,13 @@ package player
 import (
 	"asteroids/internal/config"
 	"asteroids/internal/util"
+
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 type Player struct {
-	sprite       rl.Rectangle
+	spriteRec    rl.Rectangle
+	boostRec     rl.Rectangle
 	texTilesheet rl.Texture2D
 	Position     rl.Vector2
 	Speed        rl.Vector2
@@ -29,13 +31,23 @@ func New(x, y float32) Player {
 		texTilesheet: rl.LoadTexture("resources/tilesheet.png"),
 	}
 	p.SetSprite(2, 2)
+	p.SetBoost(5, 7)
 
 	return p
 }
 
 func (p *Player) SetSprite(row, col int) {
 	ts := float32(config.TileSize)
-	p.sprite = rl.Rectangle{
+	p.spriteRec = rl.Rectangle{
+		X:     float32(col) * ts,
+		Y:     float32(row) * ts,
+		Width: ts, Height: ts,
+	}
+}
+
+func (p *Player) SetBoost(row, col int) {
+	ts := float32(config.TileSize)
+	p.boostRec = rl.Rectangle{
 		X:     float32(col) * ts,
 		Y:     float32(row) * ts,
 		Width: ts, Height: ts,
@@ -51,9 +63,15 @@ func (p *Player) Update() {
 		p.Rotation += config.RotationSpeed
 	}
 
+	// default to not boosting
+	p.IsBoosting = false
+
 	// accel/decel player
-	if rl.IsKeyDown(rl.KeyUp) && p.Acceleration < 0.9 {
-		p.Acceleration += 0.1
+	if rl.IsKeyDown(rl.KeyUp) {
+		if p.Acceleration < 0.9 {
+			p.Acceleration += 0.1
+		}
+		p.IsBoosting = true
 	}
 	if rl.IsKeyDown(rl.KeyDown) {
 		if p.Acceleration > 0 {
@@ -77,9 +95,19 @@ func (p *Player) Update() {
 
 func (p *Player) Draw() {
 	dest := rl.Rectangle{X: p.Position.X, Y: p.Position.Y, Width: p.Size.X, Height: p.Size.Y}
+	if p.IsBoosting {
+		rl.DrawTexturePro(
+			p.texTilesheet,
+			p.boostRec,
+			dest,
+			rl.Vector2{X: p.Size.X / 2, Y: p.Size.Y/2 - 40},
+			p.Rotation,
+			rl.White,
+		)
+	}
 	rl.DrawTexturePro(
 		p.texTilesheet,
-		p.sprite,
+		p.spriteRec,
 		dest,
 		rl.Vector2{X: p.Size.X / 2, Y: p.Size.Y / 2},
 		p.Rotation,
