@@ -13,6 +13,7 @@ type Game struct {
 	Player           player.Player
 	initialAsteroids int
 	astroids         []astroid.Astroid
+	gameOver         bool
 }
 
 func New() *Game {
@@ -26,14 +27,34 @@ func New() *Game {
 		Player:           player.New(config.ScreenWidth/2, config.ScreenHeight/2),
 		initialAsteroids: 5,
 		astroids:         astroid.CreateMultipleAstroids(5),
+		gameOver:         false,
 	}
 	return g
 }
 
 func (g *Game) Update() {
-	g.Player.Update()
-	for i := range g.astroids {
-		g.astroids[i].Update()
+	if !g.gameOver {
+		g.Player.Update()
+		for i := range g.astroids {
+			g.astroids[i].Update()
+		}
+
+		// Check for collisions
+		g.checkCollisions()
+	}
+}
+
+func (g *Game) checkCollisions() {
+	for i := len(g.astroids) - 1; i >= 0; i-- {
+		// Check for collision between player and asteroid
+		if rl.CheckCollisionCircles(
+			g.Player.Position,
+			g.Player.Size.X/4,
+			g.astroids[i].Position,
+			g.astroids[i].Size.X/4,
+		) {
+			g.gameOver = true
+		}
 	}
 }
 
@@ -54,10 +75,19 @@ func (g *Game) Draw() {
 		g.astroids[i].Draw()
 	}
 
+	if g.gameOver {
+		drawCenteredText("Game over", config.ScreenHeight/2, 50, rl.Red)
+	}
+
 	// Draw score
 	rl.DrawText("Score: 0", 10, 10, 20, rl.Gray)
 
 	rl.EndDrawing()
+}
+
+func drawCenteredText(text string, y, fontSize int32, color rl.Color) {
+	textWidth := rl.MeasureText(text, fontSize)
+	rl.DrawText(text, config.ScreenWidth/2-textWidth/2, y, fontSize, color)
 }
 
 func (g *Game) Close() {

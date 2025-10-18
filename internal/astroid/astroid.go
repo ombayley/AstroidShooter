@@ -17,21 +17,21 @@ const (
 )
 
 type Astroid struct {
-	position     rl.Vector2
-	speed        rl.Vector2
-	size         rl.Vector2
+	Position     rl.Vector2
+	Speed        rl.Vector2
+	Size         rl.Vector2
 	texTilesheet rl.Texture2D
 	asteroidRec  rl.Rectangle
 }
 
 func (a *Astroid) Draw() {
 	// Draw the asteroid to the screen
-	destTexture := rl.Rectangle{X: a.position.X, Y: a.position.Y, Width: a.size.X, Height: a.size.Y}
+	destTexture := rl.Rectangle{X: a.Position.X, Y: a.Position.Y, Width: a.Size.X, Height: a.Size.Y}
 	rl.DrawTexturePro(
 		a.texTilesheet,
 		a.asteroidRec,
 		destTexture,
-		rl.Vector2{X: a.size.X / 2, Y: a.size.Y / 2},
+		rl.Vector2{X: a.Size.X / 2, Y: a.Size.Y / 2},
 		0.0,
 		rl.White,
 	)
@@ -39,10 +39,10 @@ func (a *Astroid) Draw() {
 
 func (a *Astroid) Update() {
 	// Move the asteroid in its direction
-	a.position = rl.Vector2Add(a.position, a.speed)
+	a.Position = rl.Vector2Add(a.Position, a.Speed)
 
 	// Wrap the position, so they are always on screen
-	util.WrapPosition(&a.position, a.size.X, config.ScreenWidth, config.ScreenHeight)
+	util.WrapPosition(&a.Position, a.Size.X, config.ScreenWidth, config.ScreenHeight)
 }
 
 // Asteroid helper functions
@@ -92,9 +92,9 @@ func createAsteroid(asteroidSize AstroidSize, position, speed rl.Vector2) Astroi
 
 	// Create the asteroid
 	return Astroid{
-		position:     position,
-		speed:        speed,
-		size:         size,
+		Position:     position,
+		Speed:        speed,
+		Size:         size,
 		texTilesheet: rl.LoadTexture("resources/tilesheet.png"),
 		asteroidRec: rl.Rectangle{
 			X:      0 * config.TileSize,
