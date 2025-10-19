@@ -16,6 +16,8 @@ type Game struct {
 	initialAsteroids  int
 	astroids          []astroid.Astroid
 	gameOver          bool
+	paused            bool
+	victory           bool
 	astriodsDestroyed int
 }
 
@@ -32,6 +34,8 @@ func New() *Game {
 		initialAsteroids:  5,
 		astroids:          astroid.CreateMultipleAstroids(5),
 		gameOver:          false,
+		victory:           false,
+		paused:            false,
 		astriodsDestroyed: 0,
 	}
 
@@ -44,7 +48,23 @@ func New() *Game {
 }
 
 func (g *Game) Update() {
-	if !g.gameOver {
+	// If there are no asteroids left, we in
+	if len(g.astroids) == 0 {
+		g.victory = true
+	}
+
+	// Toggle paused
+	if rl.IsKeyDown('P') {
+		g.paused = !g.paused
+	}
+
+	// Restart the game
+	if (g.gameOver || g.victory) && rl.IsKeyPressed('R') {
+		g = New()
+	}
+
+	// If it is not game over, update the frame
+	if !g.paused && !g.victory && !g.gameOver {
 		// Update the player
 		g.Player.Update()
 
@@ -160,6 +180,12 @@ func (g *Game) Draw() {
 
 	if g.gameOver {
 		drawCenteredText("Game over", config.ScreenHeight/2, 50, rl.Red)
+		drawCenteredText("Press R to restart", config.ScreenHeight/2+60, 20, rl.DarkGray)
+	}
+
+	if g.victory {
+		drawCenteredText("YOU WIN!", config.ScreenHeight/2, 50, rl.Gray)
+		drawCenteredText("Press R to restart", config.ScreenHeight/2+60, 20, rl.RayWhite)
 	}
 
 	// Draw score
