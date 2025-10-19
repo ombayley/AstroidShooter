@@ -22,6 +22,7 @@ type Astroid struct {
 	Size         rl.Vector2
 	texTilesheet rl.Texture2D
 	asteroidRec  rl.Rectangle
+	asteroidSize AstroidSize
 }
 
 func (a *Astroid) Draw() {
@@ -95,6 +96,7 @@ func createAsteroid(asteroidSize AstroidSize, position, speed rl.Vector2) Astroi
 		Position:     position,
 		Speed:        speed,
 		Size:         size,
+		asteroidSize: asteroidSize,
 		texTilesheet: rl.LoadTexture("resources/tilesheet.png"),
 		asteroidRec: rl.Rectangle{
 			X:      0 * config.TileSize,
@@ -111,4 +113,33 @@ func CreateMultipleAstroids(count int) []Astroid {
 		astroids[i] = createLargeAsteroid()
 	}
 	return astroids
+}
+
+func SplitAsteroid(asteroid Astroid) []Astroid {
+	// Do nothing for small
+	if asteroid.asteroidSize == Small {
+		return []Astroid{}
+	}
+
+	// Work out how many splits to do
+	var newSize AstroidSize
+	var split int
+	if asteroid.asteroidSize == Large {
+		newSize = Medium
+		split = 2
+	} else {
+		newSize = Small
+		split = 4
+	}
+
+	// Create the new smaller asteroids
+	newAstroids := make([]Astroid, split)
+	for range split {
+		angle := float64(rl.GetRandomValue(0, 360))
+		direction := util.DirectionVector(float32(angle))
+		speed := rl.Vector2Scale(direction, 2.0)
+		newAsteroid := createAsteroid(newSize, asteroid.Position, speed)
+		newAstroids = append(newAstroids, newAsteroid)
+	}
+	return newAstroids
 }

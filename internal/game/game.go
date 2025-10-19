@@ -4,16 +4,19 @@ import (
 	"asteroids/internal/astroid"
 	"asteroids/internal/config"
 	"asteroids/internal/player"
-
+	"asteroids/internal/util"
+	"fmt"
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 type Game struct {
-	texBackground    rl.Texture2D
-	Player           player.Player
-	initialAsteroids int
-	astroids         []astroid.Astroid
-	gameOver         bool
+	texBackground     rl.Texture2D
+	Player            player.Player
+	shots             []player.Shot
+	initialAsteroids  int
+	astroids          []astroid.Astroid
+	gameOver          bool
+	astriodsDestroyed int
 }
 
 func New() *Game {
@@ -23,20 +26,41 @@ func New() *Game {
 
 	// Build game
 	g := &Game{
-		texBackground:    rl.LoadTexture("resources/space_background.png"),
-		Player:           player.New(config.ScreenWidth/2, config.ScreenHeight/2),
-		initialAsteroids: 5,
-		astroids:         astroid.CreateMultipleAstroids(5),
-		gameOver:         false,
+		texBackground:     rl.LoadTexture("resources/space_background.png"),
+		Player:            player.New(config.ScreenWidth/2, config.ScreenHeight/2),
+		shots:             make([]player.Shot, config.MaxShots),
+		initialAsteroids:  5,
+		astroids:          astroid.CreateMultipleAstroids(5),
+		gameOver:          false,
+		astriodsDestroyed: 0,
 	}
+
+	// Set shots to inactive
+	for i := range g.shots {
+		g.shots[i].Active = false
+	}
+
 	return g
 }
 
 func (g *Game) Update() {
 	if !g.gameOver {
+		// Update the player
 		g.Player.Update()
+
+		// Update the astroids
 		for i := range g.astroids {
 			g.astroids[i].Update()
+		}
+
+		// Update the shots
+		for i := range g.shots {
+			g.shots[i].Update()
+		}
+
+		// Fire the lasers
+		if rl.IsKeyPressed(rl.KeySpace) {
+			g.fireShot()
 		}
 
 		// Check for collisions
@@ -55,6 +79,60 @@ func (g *Game) checkCollisions() {
 		) {
 			g.gameOver = true
 		}
+
+		// Check for a collision between shots and the asteroid
+		for j := range g.shots {
+			// Loop through all the active shots
+			if g.shots[j].Active {
+				// If it has collided with an asteroid
+				if rl.CheckCollisionCircles(
+					g.shots[j].Position,
+					g.shots[j].Radius,
+					g.astroids[i].Position,
+					g.astroids[i].Size.X/2,
+				) {
+					// Destroy the shot and split the asteroid
+					g.shots[j].Active = false
+
+					// The asteroid shot split according to our rules
+					newAstroids := astroid.SplitAsteroid(g.astroids[i])
+					g.astroids = append(g.astroids, newAstroids...)
+
+					// Remove the original asteroid from the slice
+					g.astroids = append(g.astroids[:i], g.astroids[i+1:]...)
+
+					// Increase our score
+					g.astriodsDestroyed++
+					break
+				}
+			}
+		}
+	}
+}
+
+func (g *Game) fireShot() {
+	for i := range g.shots {
+		// Find the first inactive shot
+		if !g.shots[i].Active {
+			// Start at the players position
+			g.shots[i].Position = g.Player.Position
+			g.shots[i].Active = true
+
+			// Get the players direction
+			shotDirection := util.DirectionVector(g.Player.Rotation)
+
+			// Get the initial velocity
+			shotVelocity := rl.Vector2Scale(shotDirection, config.ShotSpeed)
+			// Account for the players speed
+			playerVelocity := rl.Vector2Scale(g.Player.Speed, g.Player.Acceleration)
+
+			// Fire the shot, realative to the players speed
+			g.shots[i].Speed = rl.Vector2Add(playerVelocity, shotVelocity)
+
+			g.shots[i].Radius = 2
+			// Break after one shot
+			break
+		}
 	}
 }
 
@@ -70,6 +148,11 @@ func (g *Game) Draw() {
 	// Draw player
 	g.Player.Draw()
 
+	// Draw shots
+	for i := range g.shots {
+		g.shots[i].Draw()
+	}
+
 	// Draw astroids
 	for i := range g.astroids {
 		g.astroids[i].Draw()
@@ -80,7 +163,7 @@ func (g *Game) Draw() {
 	}
 
 	// Draw score
-	rl.DrawText("Score: 0", 10, 10, 20, rl.Gray)
+	rl.DrawText(fmt.Sprintf("Score %d", g.astriodsDestroyed), 10, 10, 20, rl.Gray)
 
 	rl.EndDrawing()
 }
