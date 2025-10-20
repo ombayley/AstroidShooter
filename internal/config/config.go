@@ -1,7 +1,6 @@
 package config
 
-// Source for all constants
-
+// Source for all constants used in-game
 const (
 	ScreenWidth   = 1600
 	ScreenHeight  = 800
