@@ -33,6 +33,9 @@ func New() *Game {
 	rl.InitWindow(config.ScreenWidth, config.ScreenHeight, "asteroid Shooter")
 	rl.SetTargetFPS(60)
 
+	// Init the asteroids package
+	asteroid.Init()
+
 	// Build game struct
 	g := &Game{
 		texBackground:    rl.LoadTexture("resources/space_background.png"),
@@ -153,6 +156,7 @@ func (g *Game) Draw() {
 
 func (g *Game) Close() {
 	g.Player.Close()
+	asteroid.Shutdown()
 	rl.UnloadTexture(g.texBackground)
 	rl.CloseWindow()
 }

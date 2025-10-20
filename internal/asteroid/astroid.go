@@ -4,15 +4,40 @@ import (
 	//internal packages
 	"asteroids/internal/config"
 	"asteroids/internal/util"
+	"sync"
 
 	// external packages
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 // --- Variables -----------------
+var (
+	tileSheet   rl.Texture2D
+	asteroidSrc = rl.Rectangle{ // source rect on the tilesheet
+		X:      float32(0 * config.TileSize),
+		Y:      float32(4 * config.TileSize),
+		Width:  float32(config.TileSize),
+		Height: float32(config.TileSize),
+	}
+	loadOnce     sync.Once
+	assetsLoaded bool
+)
 
-// Load the tile sheet
-var tileSheet = rl.LoadTexture("resources/tilesheet.png")
+// Init loads package-local assets. Call after rl.InitWindow.
+func Init() {
+	loadOnce.Do(func() {
+		tileSheet = rl.LoadTexture("resources/tilesheet.png")
+		assetsLoaded = true
+	})
+}
+
+// Shutdown frees package-local assets. Call before rl.CloseWindow.
+func Shutdown() {
+	if assetsLoaded {
+		rl.UnloadTexture(tileSheet)
+		assetsLoaded = false
+	}
+}
 
 // --- Sizing -----------------
 
@@ -54,8 +79,6 @@ type Asteroid struct {
 	Position     rl.Vector2
 	Speed        rl.Vector2
 	Size         rl.Vector2
-	texTilesheet rl.Texture2D
-	asteroidRec  rl.Rectangle
 	asteroidSize AsteroidSize
 }
 
@@ -63,8 +86,8 @@ type Asteroid struct {
 func (a *Asteroid) Draw() {
 	destTexture := rl.Rectangle{X: a.Position.X, Y: a.Position.Y, Width: a.Size.X, Height: a.Size.Y}
 	rl.DrawTexturePro(
-		a.texTilesheet,
-		a.asteroidRec,
+		tileSheet,
+		asteroidSrc,
 		destTexture,
 		rl.Vector2{X: a.Size.X / 2, Y: a.Size.Y / 2},
 		0.0,
@@ -174,12 +197,5 @@ func createAsteroid(asteroidSize AsteroidSize, position, speed rl.Vector2) Aster
 		Speed:        speed,
 		Size:         size,
 		asteroidSize: asteroidSize,
-		texTilesheet: tileSheet,
-		asteroidRec: rl.Rectangle{
-			X:      0 * config.TileSize,
-			Y:      4 * config.TileSize,
-			Width:  config.TileSize,
-			Height: config.TileSize,
-		},
 	}
 }
