@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	// internal packages
-	"asteroids/internal/astroid"
+	"asteroids/internal/asteroid"
 	"asteroids/internal/config"
 	"asteroids/internal/player"
 	"asteroids/internal/util"
@@ -19,7 +19,7 @@ type Game struct {
 	texBackground     rl.Texture2D
 	Player            player.Player
 	shots             []player.Shot
-	asteroids         []astroid.Astroid
+	asteroids         []asteroid.Asteroid
 	initialAsteroids  int
 	astriodsDestroyed int
 	gameOver          bool
@@ -30,7 +30,7 @@ type Game struct {
 // Build a new game
 func New() *Game {
 	// Build the GUI window for the game
-	rl.InitWindow(config.ScreenWidth, config.ScreenHeight, "Asteroid Shooter")
+	rl.InitWindow(config.ScreenWidth, config.ScreenHeight, "asteroid Shooter")
 	rl.SetTargetFPS(60)
 
 	// Build game struct
@@ -55,8 +55,8 @@ func (g *Game) initState() {
 		g.shots[i].Active = false
 	}
 
-	// Setup astroids
-	g.asteroids = astroid.CreateMultipleAstroids(5)
+	// Setup asteroids
+	g.asteroids = asteroid.CreateAsteroids(5)
 
 	// Reset game state
 	g.gameOver = false
@@ -92,7 +92,7 @@ func (g *Game) Update() {
 		// Update the player
 		g.Player.Update()
 
-		// Update the astroids
+		// Update the asteroids
 		for i := range g.asteroids {
 			g.asteroids[i].Update()
 		}
@@ -129,7 +129,7 @@ func (g *Game) Draw() {
 		g.shots[i].Draw()
 	}
 
-	// Draw astroids
+	// Draw asteroids
 	for i := range g.asteroids {
 		g.asteroids[i].Draw()
 	}
@@ -184,8 +184,8 @@ func (g *Game) checkCollisions() {
 					g.shots[j].Active = false
 
 					// The asteroid shot split according to our rules
-					newAstroids := astroid.SplitAsteroid(g.asteroids[i])
-					g.asteroids = append(g.asteroids, newAstroids...)
+					newAsteroids := asteroid.Break(g.asteroids[i])
+					g.asteroids = append(g.asteroids, newAsteroids...)
 
 					// Remove the original asteroid from the slice
 					g.asteroids = append(g.asteroids[:i], g.asteroids[i+1:]...)
