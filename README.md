@@ -1,22 +1,21 @@
 # 📘 Astroid Shooter
 
-> Astroid shooter game in go using raylib-go 
+> Astroid shooter game written in go using raylib-go 
 
 ---
 
 ## 🧩 Overview
 
-Game development combines logic, physics, and design to produce interactive experiences.
-While high-performance engines like Unity (C#) or Unreal (C++) dominate, Go offers a compelling blend of simplicity and speed.
-This project builds a retro-style asteroid shooter, focusing on game loops, collision detection, and rendering.
+Game development is one of the largest branches of programming and is usually done with frameworks like the Unity (C#) or Unreal (C++) Engines. However game development with these frameworks is typically quite complex and require a lot of setup and learning. Go, on the other hand, is known for its simplicity and strong performance making it ideal for rapid (simple) game development. This project builds a retro-style asteroid shooter, focusing on game loops, collision detection, and rendering.
 
 ---
 
 ## 🎯 Objectives / Learning Goals
 
-- 🔹 [Goal 1] — Learn Go development environment
-- 🔹 [Goal 2] — Explore Go’s concurrency model and graphics libraries.  
-- 🔹 [Goal 3] — Learn game loop structure (update, render, input).  
+- 🔹 [Goal 1] — Learn Go structuring and syntax. 
+- 🔹 [Goal 2] — Explore Go’s graphics libraries.  
+- 🔹 [Goal 3] — Learn how to implement game loop structures with go architecture (update, render, input, etc...).
+- 🔹 [Goal 4] — Learn to deploy distributable games (via GitHub Actions).
 
 ---
 
@@ -86,47 +85,46 @@ go get -u github.com/gen2brain/raylib-go/raylib@latest
 
 ### ▶️ Run
 
+once the dependencies are installed, you can run the game by running the following command:
+
 ```bash
 go run main.go
+```
+
+alternatively you can build the game executable by running the following command:
+
+```bash
+go build main.go
 ```
 
 ---
 
 ## 📊 Results / Observations
 
-- Key metrics or outcomes  
-- Screenshots or performance graphs  
-- Lessons learned, trade-offs, or insights  
+The game is a simple retro-style asteroid shooterand starts up with a given number of large initial asteroids
 
----
+![](resources/startup.png) 
 
-## 🚀 Features / Implementation Plan
 
-1. **Step 1 – Setup:** brief description (e.g., initialize repo, install deps)  
-2. **Step 2 – Core Functionality:** what’s being built and how  
-3. **Step 3 – Comparison / Benchmarking:** if relevant  
-4. **Step 4 – Visualization / Output:** how results are displayed or tested  
-5. **Step 5 – Deployment / Packaging:** optional (web, CLI, hardware, etc.)
-
-> 📈 You can add diagrams or screenshots here  
-> `![screenshot](docs/screenshot.png)`  
+The game can be played by moving the ship using the arrow keys and pressing space to fire. When shot the asteroids explode into smaller fragments until the small astroids are destroyed whereupon the disappear completely. Once the player has been hit by an asteroid, the game is over.
+![](resources/in_action.png) 
 
 ---
 
 ## 🔮 Future Improvements
 
-- Add ship selection with differrent stats
-- Add enemies
-- Add powerups
-- Add health bar
+- Add ship selection with differrent stats (structure ready but need GUI)
+- Add enemies to fight
+- Add powerups to change speeds and shots
+- Add health bar to allow ship to take accumulating damage
 
 ---
 
 ## 📚 References / Resources
 
 - [Library or Framework Docs](https://github.com/gen2brain/raylib-go)
-- [Tutorial or Blog Post](https://levelup.gitconnected.com/build-an-asteroids-game-with-raylib-go-4a92475b492c)
-- [Assets](https://github.com/timlittle/blog-code/blob/main/go-asteroids/resources/space_background.png, https://github.com/timlittle/blog-code/blob/main/go-asteroids/resources/tilesheet.png)
+- [Background Image](https://github.com/timlittle/blog-code/blob/main/go-asteroids/resources/space_background.png)
+- [Sprite Tile Sheet](https://github.com/timlittle/blog-code/blob/main/go-asteroids/resources/tilesheet.png)
 
 ---
 
