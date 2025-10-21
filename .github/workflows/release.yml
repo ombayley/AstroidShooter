@@ -3,17 +3,15 @@ name: Release
 on:
   push:
     tags:
-      - "v1.0.0"
+      - "v*.*.*"
 
 jobs:
   release:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-
     steps:
       - uses: actions/checkout@v4
-
       - name: Create GitHub Release
         id: create_release
         uses: softprops/action-gh-release@v2
@@ -29,24 +27,31 @@ jobs:
     runs-on: ${{ matrix.os }}
     permissions:
       contents: write
-
     env:
       CGO_ENABLED: "1"
 
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+
+      # --- Go toolchain ---
+      - name: Set up Go (Ubuntu/macOS)
+        if: matrix.os != 'windows-latest'
+        uses: actions/setup-go@v5
         with:
           go-version: "1.22.x"
 
-      # (same install steps as in build.yml)
-      - name: Install raylib (Ubuntu)
+      # --- OS deps ---
+      - name: Install raylib (Ubuntu 24.04)
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libraylib-dev build-essential \
-            libasound2-dev libx11-dev libxi-dev libxrandr-dev \
-            libxinerama-dev libxcursor-dev libgl1-mesa-dev
+          sudo apt-get install -y software-properties-common build-essential pkg-config \
+            libasound2-dev libx11-dev libxi-dev libxrandr-dev libxinerama-dev \
+            libxcursor-dev libgl1-mesa-dev \
+            libxkbcommon-dev libwayland-dev wayland-protocols
+          sudo add-apt-repository -y ppa:texus/raylib
+          sudo apt-get update
+          sudo apt-get install -y libraylib5-dev
 
       - name: Install raylib (macOS)
         if: matrix.os == 'macos-latest'
@@ -64,7 +69,9 @@ jobs:
             mingw-w64-x86_64-gcc
             mingw-w64-x86_64-pkg-config
             mingw-w64-x86_64-raylib
+            mingw-w64-x86_64-go   # install Go inside MSYS2
 
+      # --- Build ---
       - name: Build (Ubuntu/macOS)
         if: matrix.os != 'windows-latest'
         run: |
@@ -77,9 +84,12 @@ jobs:
         env:
           PKG_CONFIG_PATH: /mingw64/lib/pkgconfig
         run: |
+          go version
+          go env
           go mod download
           go build -v -o dist/asteroids-Windows.exe .
 
+      # --- Attach to the tag's release ---
       - name: Upload to Release
         uses: softprops/action-gh-release@v2
         with:

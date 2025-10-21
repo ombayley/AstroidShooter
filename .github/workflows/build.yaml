@@ -20,7 +20,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: S
+      - name: Set up Go
         if: matrix.os != 'windows-latest' 
         uses: actions/setup-go@v5
         with:
