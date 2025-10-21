@@ -10,7 +10,7 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
-// --- Variables -----------------
+// --- Package Variables -----------------
 var (
 	tileSheet   rl.Texture2D
 	asteroidSrc = rl.Rectangle{ // source rect on the tilesheet
@@ -23,7 +23,7 @@ var (
 	assetsLoaded bool
 )
 
-// Init loads package-local assets. Call after rl.InitWindow.
+// Init loads package-local assets. Call AFTER rl.InitWindow.
 func Init() {
 	loadOnce.Do(func() {
 		tileSheet = rl.LoadTexture("resources/tilesheet.png")
@@ -31,7 +31,7 @@ func Init() {
 	})
 }
 
-// Shutdown frees package-local assets. Call before rl.CloseWindow.
+// Shutdown frees package-local assets. Call BEFORE rl.CloseWindow.
 func Shutdown() {
 	if assetsLoaded {
 		rl.UnloadTexture(tileSheet)
