@@ -155,6 +155,11 @@ func (g *Game) Update() {
 
 		// Check collisions
 		g.checkCollisions()
+
+		// Win condition
+		if len(g.asteroids) == 0 {
+			g.victory = true
+		}
 	}
 }
 
