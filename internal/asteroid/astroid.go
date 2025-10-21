@@ -116,18 +116,16 @@ func Break(asteroid Asteroid) []Asteroid {
 	var split int
 	switch asteroid.asteroidSize {
 	case Large:
-		newSize = Medium
-		split = 2
+		newSize, split = Medium, 2
 	case Medium:
-		newSize = Small
-		split = 4
+		newSize, split = Small, 4
 	default:
 		return nil
 	}
 
 	// Create the new smaller asteroids
-	children := make([]Asteroid, split)
-	for range split {
+	children := make([]Asteroid, 0, split)
+	for i := 0; i < split; i++ {
 		// Generate a random direction to go
 		angle := float32(rl.GetRandomValue(0, 360))
 		direction := util.DirectionVector(angle)
@@ -166,7 +164,7 @@ func createRandomLargeAsteroid() Asteroid {
 	// Set the position based on the random edge given
 	switch randomEdge {
 	case 0: // top
-		position = rl.Vector2{X: randomX, Y: +config.TileSize}
+		position = rl.Vector2{X: randomX, Y: -config.TileSize}
 	case 1: // right
 		position = rl.Vector2{X: config.ScreenWidth + config.TileSize, Y: randomY}
 	case 2: // bottom
