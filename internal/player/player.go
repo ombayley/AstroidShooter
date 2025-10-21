@@ -1,11 +1,41 @@
 package player
 
 import (
+	// built-in
+	"sync"
+	// internal packages
 	"asteroids/internal/config"
 	"asteroids/internal/util"
 
+	// external packages
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
+
+// --- Package Variables -----------------
+
+var (
+	tileSheet    rl.Texture2D
+	loadOnce     sync.Once
+	assetsLoaded bool
+)
+
+// Init loads the player tilesheet. Call AFTER rl.InitWindow.
+func Init() {
+	loadOnce.Do(func() {
+		tileSheet = rl.LoadTexture("resources/tilesheet.png")
+		assetsLoaded = true
+	})
+}
+
+// Shutdown frees the player tilesheet. Call BEFORE rl.CloseWindow.
+func Shutdown() {
+	if assetsLoaded {
+		rl.UnloadTexture(tileSheet)
+		assetsLoaded = false
+	}
+}
+
+// --- Player -----------------
 
 type Player struct {
 	spriteRec    rl.Rectangle
@@ -19,40 +49,61 @@ type Player struct {
 	IsBoosting   bool
 }
 
-func New(x, y float32) Player {
-
-	// Set up the player
+// New creates a new player - TODO add selector to set player, boost and stats
+func New() Player {
 	p := Player{
-		Position:     rl.Vector2{X: x, Y: y},
+		Position:     rl.Vector2{X: config.ScreenWidth / 2, Y: config.ScreenHeight / 2},
 		Speed:        rl.Vector2{X: 0, Y: 0},
 		Size:         rl.Vector2{X: config.TileSize, Y: config.TileSize},
 		Rotation:     0,
 		Acceleration: 0,
-		texTilesheet: rl.LoadTexture("resources/tilesheet.png"),
 	}
-	p.SetSprite(2, 2)
-	p.SetBoost(5, 7)
+	p.setSprite(18)
+	p.setBoost(1)
+	setMaxmima()
 
 	return p
 }
 
-func (p *Player) SetSprite(row, col int) {
+// setSprite sets the sprite for the player (1-24)
+func (p *Player) setSprite(sprite int) {
+	if 1 > sprite || sprite > 24 {
+		return // TODO set panic
+	}
+
+	frame := config.PlayerSpriteMap[sprite]
 	ts := float32(config.TileSize)
 	p.spriteRec = rl.Rectangle{
-		X:     float32(col) * ts,
-		Y:     float32(row) * ts,
+		X:     float32(frame.Col) * ts,
+		Y:     float32(frame.Row) * ts,
 		Width: ts, Height: ts,
 	}
 }
 
-func (p *Player) SetBoost(row, col int) {
+// setBoost sets the yellow (1) or purple (2) boost colour
+func (p *Player) setBoost(sprite int) {
+	if 1 > sprite || sprite > 2 {
+		return // TODO set panic
+	}
+
+	frame := config.PlayerSpriteMap[sprite]
 	ts := float32(config.TileSize)
 	p.boostRec = rl.Rectangle{
-		X:     float32(col) * ts,
-		Y:     float32(row) * ts,
+		X:     float32(frame.Col) * ts,
+		Y:     float32(frame.Row) * ts,
 		Width: ts, Height: ts,
 	}
 }
+
+// SetMaxmima sets the maxmima for the player
+func setMaxmima() {
+	config.RotationSpeed = float32(2.0)
+	config.PlayerSpeed = float32(6.0)
+	config.ShotSpeed = float32(8.0)
+	config.MaxShots = int(10)
+}
+
+// --- Action Functions -----------------
 
 func (p *Player) Update() {
 	// rotate player
@@ -93,9 +144,17 @@ func (p *Player) Update() {
 	util.WrapPosition(&p.Position, float32(config.TileSize), config.ScreenWidth, config.ScreenHeight)
 }
 
+// Draw the player
 func (p *Player) Draw() {
+	if !assetsLoaded {
+		return // TODO set panic
+	}
+
 	dest := rl.Rectangle{X: p.Position.X, Y: p.Position.Y, Width: p.Size.X, Height: p.Size.Y}
+
+	// Draw the boost
 	if p.IsBoosting {
+		// Slightly offset origin so boost draws "behind" the ship.
 		rl.DrawTexturePro(
 			p.texTilesheet,
 			p.boostRec,
@@ -105,6 +164,8 @@ func (p *Player) Draw() {
 			rl.White,
 		)
 	}
+
+	// Draw the ship
 	rl.DrawTexturePro(
 		p.texTilesheet,
 		p.spriteRec,
@@ -113,7 +174,4 @@ func (p *Player) Draw() {
 		p.Rotation,
 		rl.White,
 	)
-}
-func (p *Player) Close() {
-	rl.UnloadTexture(p.texTilesheet)
 }
