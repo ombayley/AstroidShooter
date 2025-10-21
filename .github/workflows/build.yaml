@@ -20,7 +20,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Go
+      - name: S
+        if: matrix.os != 'windows-latest' 
         uses: actions/setup-go@v5
         with:
           go-version: "1.22.x"
@@ -52,6 +53,7 @@ jobs:
             mingw-w64-x86_64-gcc
             mingw-w64-x86_64-pkg-config
             mingw-w64-x86_64-raylib
+            mingw-w64-x86_64-go 
 
       - name: Build (Ubuntu/macOS)
         if: matrix.os != 'windows-latest'
@@ -65,6 +67,7 @@ jobs:
         if: matrix.os == 'windows-latest'
         shell: msys2 {0}
         env:
+          CGO_ENABLED: "1"
           PKG_CONFIG_PATH: /mingw64/lib/pkgconfig
         run: |
           go version
