@@ -3,6 +3,7 @@ package game
 import (
 	// built-ins
 	"fmt"
+	"sync"
 
 	// internal packages
 	"asteroids/internal/asteroid"
@@ -14,33 +15,62 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
-// Game struct holding the game state variables
-type Game struct {
-	texBackground     rl.Texture2D
-	Player            player.Player
-	shots             []player.Shot
-	asteroids         []asteroid.Asteroid
-	initialAsteroids  int
-	astriodsDestroyed int
-	gameOver          bool
-	paused            bool
-	victory           bool
+// --- Package Variables -----------------
+
+var (
+	texBackground rl.Texture2D
+	loadOnce      sync.Once
+	assetsLoaded  bool
+)
+
+// Init loads the background tilesheet. Call AFTER rl.InitWindow.
+func Init() {
+	loadOnce.Do(func() {
+		texBackground = rl.LoadTexture("resources/space_background.png")
+		assetsLoaded = true
+	})
 }
 
-// Build a new game
+// Shutdown frees the background tilesheet. Call BEFORE rl.CloseWindow.
+func Shutdown() {
+	if assetsLoaded {
+		rl.UnloadTexture(texBackground)
+		assetsLoaded = false
+	}
+}
+
+//
+// --- Game ---------------------------------------------------------------------
+//
+
+// Game struct holding the game state variables
+type Game struct {
+	// Game elements
+	Player    player.Player
+	shots     []player.Shot
+	asteroids []asteroid.Asteroid
+	// Game state
+	asteriodsDestroyed int
+	gameOver           bool
+	paused             bool
+	victory            bool
+}
+
+// --- Lifecycle ----------------------------------------------------------------
+
+// New builds a new game (window + assets + initial state).
 func New() *Game {
-	// Build the GUI window for the game
+	// Build Window
 	rl.InitWindow(config.ScreenWidth, config.ScreenHeight, "asteroid Shooter")
 	rl.SetTargetFPS(60)
 
-	// Init the asteroids package
+	// Init package assets (package textures)
+	Init()
 	asteroid.Init()
+	player.Init()
 
 	// Build game struct
-	g := &Game{
-		texBackground:    rl.LoadTexture("resources/space_background.png"),
-		initialAsteroids: 5,
-	}
+	g := &Game{}
 
 	// Set game to initial game state
 	g.initState()
@@ -48,6 +78,17 @@ func New() *Game {
 	return g
 }
 
+// Close all textures then window
+func (g *Game) Close() {
+	player.Shutdown()
+	asteroid.Shutdown()
+	Shutdown()
+	rl.CloseWindow()
+}
+
+// --- State --------------------------------------------------------------------
+
+// Setup initial game state
 func (g *Game) initState() {
 	// Create initial player state
 	g.Player = player.New()
@@ -65,7 +106,7 @@ func (g *Game) initState() {
 	g.gameOver = false
 	g.victory = false
 	g.paused = false
-	g.astriodsDestroyed = 0
+	g.asteriodsDestroyed = 0
 }
 
 // Reset the game
@@ -73,36 +114,33 @@ func (g *Game) Reset() {
 	g.initState()
 }
 
+// --- Update / Draw ------------------------------------------------------------
+
 func (g *Game) Update() {
-	// If there are no asteroids left, we in
+	// Win condition
 	if !g.gameOver && !g.victory && len(g.asteroids) == 0 {
 		g.victory = true
 	}
 
-	// Toggle paused
+	// Pause
 	if rl.IsKeyPressed(rl.KeyP) {
 		g.paused = !g.paused
 	}
 
-	// Restart the game
+	// Restart
 	if (g.gameOver || g.victory) && rl.IsKeyPressed(rl.KeyR) {
 		g.Reset()
 		return
 	}
 
-	// If it is not game over, update the frame
+	// Live update
 	if !g.paused && !g.victory && !g.gameOver {
-		// Update the player
+		// Update player
 		g.Player.Update()
 
-		// Update the asteroids
+		// Update asteroids
 		for i := range g.asteroids {
 			g.asteroids[i].Update()
-		}
-
-		// Update the shots
-		for i := range g.shots {
-			g.shots[i].Update()
 		}
 
 		// Fire shot
@@ -110,7 +148,12 @@ func (g *Game) Update() {
 			g.fireShot()
 		}
 
-		// Check for collisions
+		// Update shots
+		for i := range g.shots {
+			g.shots[i].Update()
+		}
+
+		// Check collisions
 		g.checkCollisions()
 	}
 }
@@ -119,51 +162,47 @@ func (g *Game) Draw() {
 	// Clear the screen
 	rl.BeginDrawing()
 
-	// Draw background
-	src := rl.Rectangle{X: 0, Y: 0, Width: float32(g.texBackground.Width), Height: float32(g.texBackground.Height)}
-	dst := rl.Rectangle{X: 0, Y: 0, Width: config.ScreenWidth, Height: config.ScreenHeight}
-	rl.DrawTexturePro(g.texBackground, src, dst, rl.Vector2{}, 0, rl.White)
+	// Background
+	g.drawBackground()
 
-	// Draw player
+	// Player
 	g.Player.Draw()
 
-	// Draw shots
+	// Shots
 	for i := range g.shots {
 		g.shots[i].Draw()
 	}
 
-	// Draw asteroids
+	// Asteroids
 	for i := range g.asteroids {
 		g.asteroids[i].Draw()
 	}
 
+	// Game over overlay
 	if g.gameOver {
 		drawCenteredText("Game over", config.ScreenHeight/2, 50, rl.Red)
 		drawCenteredText("Press R to restart", config.ScreenHeight/2+60, 20, rl.DarkGray)
 	}
-
+	// Victory overlay
 	if g.victory {
 		drawCenteredText("YOU WIN!", config.ScreenHeight/2, 50, rl.Gray)
 		drawCenteredText("Press R to restart", config.ScreenHeight/2+60, 20, rl.RayWhite)
 	}
 
-	// Draw score
-	rl.DrawText(fmt.Sprintf("Score %d", g.astriodsDestroyed), 10, 10, 20, rl.Gray)
+	// HUD
+	rl.DrawText(fmt.Sprintf("Score %d", g.asteriodsDestroyed), 10, 10, 20, rl.Gray)
 	pauseTextSize := rl.MeasureText("[P]ause", 20)
 	rl.DrawText("[P]ause", config.ScreenWidth-pauseTextSize-10, 10, 20, rl.Gray)
+
 	rl.EndDrawing()
 }
 
-func (g *Game) Close() {
-	player.Shutdown()
-	asteroid.Shutdown()
-	rl.UnloadTexture(g.texBackground)
-	rl.CloseWindow()
-}
+// --- Internals ----------------------------------------------------------------
 
+// Check for collisions between game elements
 func (g *Game) checkCollisions() {
 	for i := len(g.asteroids) - 1; i >= 0; i-- {
-		// Check for collision between player and asteroid
+		// Check collision between player and asteroid
 		if rl.CheckCollisionCircles(
 			g.Player.Position,
 			g.Player.Size.X/4,
@@ -173,9 +212,8 @@ func (g *Game) checkCollisions() {
 			g.gameOver = true
 		}
 
-		// Check for a collision between shots and the asteroid
+		// Check collision between shots and asteroids
 		for j := range g.shots {
-			// Loop through all the active shots
 			if g.shots[j].Active {
 				// If it has collided with an asteroid
 				if rl.CheckCollisionCircles(
@@ -195,7 +233,7 @@ func (g *Game) checkCollisions() {
 					g.asteroids = append(g.asteroids[:i], g.asteroids[i+1:]...)
 
 					// Increase our score
-					g.astriodsDestroyed++
+					g.asteriodsDestroyed++
 					break
 				}
 			}
@@ -229,11 +267,22 @@ func (g *Game) fireShot() {
 	}
 }
 
+// --- Helpers ----------------------------------------------------------------
+
+// Draw centered text
 func drawCenteredText(text string, y, fontSize int32, color rl.Color) {
 	textWidth := rl.MeasureText(text, fontSize)
 	rl.DrawText(text, config.ScreenWidth/2-textWidth/2, y, fontSize, color)
 }
 
+// Draw the background
+func (g *Game) drawBackground() {
+	src := rl.Rectangle{X: 0, Y: 0, Width: float32(texBackground.Width), Height: float32(texBackground.Height)}
+	dst := rl.Rectangle{X: 0, Y: 0, Width: config.ScreenWidth, Height: config.ScreenHeight}
+	rl.DrawTexturePro(texBackground, src, dst, rl.Vector2{}, 0, rl.White)
+}
+
+// Check if the window should close (remove rl import req. in main)
 func (g *Game) WindowShouldClose() bool {
 	return rl.WindowShouldClose()
 }
