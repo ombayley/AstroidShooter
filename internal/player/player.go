@@ -86,7 +86,7 @@ func (p *Player) setBoost(sprite int) {
 		return // TODO set panic
 	}
 
-	frame := config.PlayerSpriteMap[sprite]
+	frame := config.BoostSpriteMap[sprite]
 	ts := float32(config.TileSize)
 	p.boostRec = rl.Rectangle{
 		X:     float32(frame.Col) * ts,
