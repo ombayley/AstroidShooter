@@ -1,6 +1,6 @@
 # 📘 Astroid Shooter
 
-> Astroid shooter game in go using raylib 
+> Astroid shooter game in go using raylib-go 
 
 ---
 
@@ -33,7 +33,7 @@ This project builds a retro-style asteroid shooter, focusing on game loops, coll
 
 ### 🖥️ Setup
 
-install go from: https://go.dev/dl/ - This is a go project so obviously installing the language is essential.
+install go from: https://go.dev/dl/ - This is a go project so installing the language is essential.
 
 install MSYS2 to get mingw-w64 https://www.msys2.org/ - this is needed for compiling the raylib-go library .dll file
 
@@ -115,9 +115,10 @@ go run main.go
 
 ## 🔮 Future Improvements
 
-- [ ] Feature idea 1  
-- [ ] Feature idea 2  
-- [ ] Optional enhancements, refactors, or optimizations  
+- Add ship selection with differrent stats
+- Add enemies
+- Add powerups
+- Add health bar
 
 ---
 
