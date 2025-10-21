@@ -1,0 +1,80 @@
+name: Build (macOS, Windows, Linux)
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    name: Build ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    env:
+      CGO_ENABLED: "1"   # raylib-go requires CGO
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.22.x"
+
+      # ---------- OS-specific raylib deps ----------
+      - name: Install raylib (Ubuntu)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          # raylib + typical GL/X11 deps for build/run
+          sudo apt-get install -y libraylib-dev build-essential \
+            libasound2-dev libx11-dev libxi-dev libxrandr-dev \
+            libxinerama-dev libxcursor-dev libgl1-mesa-dev
+
+      - name: Install raylib (macOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          brew update
+          brew install raylib
+
+      # On Windows, use MSYS2 to get raylib + gcc toolchain
+      - name: Set up MSYS2 (Windows)
+        if: matrix.os == 'windows-latest'
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-pkg-config
+            mingw-w64-x86_64-raylib
+
+      - name: Build (Ubuntu/macOS)
+        if: matrix.os != 'windows-latest'
+        run: |
+          go mod download
+          # build your game main; adjust path if needed
+          go build -v -o dist/asteroids-${{ runner.os }} .
+
+      # Build on Windows inside MSYS2 environment but using Go from PATH
+      - name: Build (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: msys2 {0}
+        env:
+          PKG_CONFIG_PATH: /mingw64/lib/pkgconfig
+        run: |
+          go version
+          go env
+          go mod download
+          go build -v -o dist/asteroids-Windows.exe .
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: asteroids-${{ runner.os }}
+          path: dist/*
+          if-no-files-found: error
