@@ -69,7 +69,7 @@ jobs:
             mingw-w64-x86_64-gcc
             mingw-w64-x86_64-pkg-config
             mingw-w64-x86_64-raylib
-            mingw-w64-x86_64-go   # install Go inside MSYS2
+            mingw-w64-x86_64-go
 
       # --- Build ---
       - name: Build (Ubuntu/macOS)
