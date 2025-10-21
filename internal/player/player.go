@@ -156,7 +156,7 @@ func (p *Player) Draw() {
 	if p.IsBoosting {
 		// Slightly offset origin so boost draws "behind" the ship.
 		rl.DrawTexturePro(
-			p.texTilesheet,
+			tileSheet,
 			p.boostRec,
 			dest,
 			rl.Vector2{X: p.Size.X / 2, Y: p.Size.Y/2 - 40},
@@ -167,7 +167,7 @@ func (p *Player) Draw() {
 
 	// Draw the ship
 	rl.DrawTexturePro(
-		p.texTilesheet,
+		tileSheet,
 		p.spriteRec,
 		dest,
 		rl.Vector2{X: p.Size.X / 2, Y: p.Size.Y / 2},
