@@ -50,7 +50,7 @@ func New() *Game {
 
 func (g *Game) initState() {
 	// Create initial player state
-	g.Player = player.New(config.ScreenWidth/2, config.ScreenHeight/2)
+	g.Player = player.New()
 
 	// Setup shots
 	g.shots = make([]player.Shot, config.MaxShots)
@@ -155,7 +155,7 @@ func (g *Game) Draw() {
 }
 
 func (g *Game) Close() {
-	g.Player.Close()
+	player.Shutdown()
 	asteroid.Shutdown()
 	rl.UnloadTexture(g.texBackground)
 	rl.CloseWindow()
