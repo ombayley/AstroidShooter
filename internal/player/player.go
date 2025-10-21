@@ -40,7 +40,6 @@ func Shutdown() {
 type Player struct {
 	spriteRec    rl.Rectangle
 	boostRec     rl.Rectangle
-	texTilesheet rl.Texture2D
 	Position     rl.Vector2
 	Speed        rl.Vector2
 	Size         rl.Vector2
